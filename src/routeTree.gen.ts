@@ -19,6 +19,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ResultsRouteImport } from './routes/results'
 import { Route as RulesRouteImport } from './routes/rules'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as AuthenticatedCertificatesRouteImport } from './routes/_authenticated/certificates'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEvaluateRouteImport } from './routes/_authenticated/evaluate'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -73,6 +74,12 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCertificatesRoute =
+  AuthenticatedCertificatesRouteImport.update({
+    id: '/certificates',
+    path: '/certificates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/results': typeof ResultsRoute
   '/rules': typeof RulesRoute
   '/verify': typeof VerifyRoute
+  '/certificates': typeof AuthenticatedCertificatesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evaluate': typeof AuthenticatedEvaluateRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -120,6 +128,7 @@ export interface FileRoutesByTo {
   '/results': typeof ResultsRoute
   '/rules': typeof RulesRoute
   '/verify': typeof VerifyRoute
+  '/certificates': typeof AuthenticatedCertificatesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/evaluate': typeof AuthenticatedEvaluateRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -137,6 +146,7 @@ export interface FileRoutesById {
   '/results': typeof ResultsRoute
   '/rules': typeof RulesRoute
   '/verify': typeof VerifyRoute
+  '/_authenticated/certificates': typeof AuthenticatedCertificatesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/evaluate': typeof AuthenticatedEvaluateRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/rules'
     | '/verify'
+    | '/certificates'
     | '/dashboard'
     | '/evaluate'
     | '/profile'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/rules'
     | '/verify'
+    | '/certificates'
     | '/dashboard'
     | '/evaluate'
     | '/profile'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
     | '/results'
     | '/rules'
     | '/verify'
+    | '/_authenticated/certificates'
     | '/_authenticated/dashboard'
     | '/_authenticated/evaluate'
     | '/_authenticated/profile'
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/certificates': {
+      id: '/_authenticated/certificates'
+      path: '/certificates'
+      fullPath: '/certificates'
+      preLoaderRoute: typeof AuthenticatedCertificatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -308,6 +328,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCertificatesRoute: typeof AuthenticatedCertificatesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEvaluateRoute: typeof AuthenticatedEvaluateRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -315,6 +336,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCertificatesRoute: AuthenticatedCertificatesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEvaluateRoute: AuthenticatedEvaluateRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
