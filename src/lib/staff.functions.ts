@@ -273,3 +273,47 @@ export const createQuestion = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const bulkCreateQuestions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        competitionId: z.string().uuid(),
+        questions: z
+          .array(
+            z.object({
+              prompt: z.string().min(1).max(4000),
+              q_type: z.enum(["mcq", "short", "written"]),
+              marks: z.number().min(0).max(1000),
+              options: z.array(z.string()).max(4).optional(),
+              correct_option: z.number().int().min(0).max(3).nullable().optional(),
+              word_limit: z.number().int().min(1).max(5000).nullable().optional(),
+            }),
+          )
+          .min(1)
+          .max(500),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId, ["super_admin", "competition_admin"]);
+    const supabase = context.supabase;
+    const { count } = await supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("competition_id", data.competitionId);
+    const rows = data.questions.map((q, index) => ({
+      competition_id: data.competitionId,
+      prompt: q.prompt,
+      q_type: q.q_type,
+      marks: q.marks,
+      options: q.q_type === "mcq" ? (q.options ?? []) : [],
+      correct_option: q.q_type === "mcq" ? (q.correct_option ?? 0) : null,
+      word_limit: q.q_type === "mcq" ? null : (q.word_limit ?? null),
+      position: (count ?? 0) + index + 1,
+    }));
+    const { error } = await supabase.from("questions").insert(rows);
+    if (error) throw new Error(error.message);
+    return { inserted: rows.length };
+  });
