@@ -48,14 +48,24 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
+    const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
     setLoading(false);
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success("Welcome back!");
-    navigate({ to: "/dashboard" });
+    const staff = await isStaff(data.user?.id);
+    navigate({ to: staff ? "/admin" : "/dashboard" });
+  }
+
+  /** Admins skip the competitor dashboard and land on /admin. */
+  async function isStaff(userId?: string) {
+    if (!userId) return false;
+    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    return (data ?? []).some(
+      (r) => r.role === "super_admin" || r.role === "competition_admin",
+    );
   }
 
   async function handleSignup(event: React.FormEvent) {
