@@ -164,3 +164,112 @@ export const getAdminStats = createServerFn({ method: "GET" })
       pendingEvaluations: pending.count ?? 0,
     };
   });
+export const listAdminCompetitions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertStaff(context.supabase, context.userId, ["super_admin", "competition_admin"]);
+    const { data, error } = await context.supabase
+      .from("competitions")
+      .select(
+        "id, title, comp_type, category, status, duration_minutes, negative_marking, results_published, exam_start, exam_end, questions(id, prompt, q_type, marks, options, correct_option, word_limit, position)",
+      )
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const createCompetition = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        title: z.string().min(3).max(200),
+        comp_type: z.enum(["mcq", "short", "written", "mixed"]),
+        category: z.string().max(100).optional(),
+        reg_start: z.string().optional(),
+        reg_end: z.string().optional(),
+        exam_start: z.string().optional(),
+        exam_end: z.string().optional(),
+        duration_minutes: z.number().int().min(1).max(600),
+        negative_marking: z.boolean(),
+        negative_mark_value: z.number().min(0).max(10),
+        status: z.enum(["draft", "published"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId, ["super_admin", "competition_admin"]);
+    const { data: row, error } = await context.supabase
+      .from("competitions")
+      .insert({
+        title: data.title,
+        comp_type: data.comp_type,
+        category: data.category || null,
+        reg_start: data.reg_start || null,
+        reg_end: data.reg_end || null,
+        exam_start: data.exam_start || null,
+        exam_end: data.exam_end || null,
+        duration_minutes: data.duration_minutes,
+        negative_marking: data.negative_marking,
+        negative_mark_value: data.negative_mark_value,
+        status: data.status,
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const setCompetitionStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({ competitionId: z.string().uuid(), status: z.enum(["draft", "published", "closed"]) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId, ["super_admin", "competition_admin"]);
+    const { error } = await context.supabase
+      .from("competitions")
+      .update({ status: data.status })
+      .eq("id", data.competitionId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const createQuestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        competitionId: z.string().uuid(),
+        prompt: z.string().min(3).max(4000),
+        q_type: z.enum(["mcq", "short", "written"]),
+        marks: z.number().min(0).max(1000),
+        options: z.array(z.string()).max(4).optional(),
+        correct_option: z.number().int().min(0).max(3).nullable().optional(),
+        word_limit: z.number().int().min(1).max(5000).nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.supabase, context.userId, ["super_admin", "competition_admin"]);
+    const supabase = context.supabase;
+    const { count } = await supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("competition_id", data.competitionId);
+    const { error } = await supabase.from("questions").insert({
+      competition_id: data.competitionId,
+      prompt: data.prompt,
+      q_type: data.q_type,
+      marks: data.marks,
+      options: data.q_type === "mcq" ? (data.options ?? []) : [],
+      correct_option: data.q_type === "mcq" ? (data.correct_option ?? 0) : null,
+      word_limit: data.q_type === "mcq" ? null : (data.word_limit ?? null),
+      position: (count ?? 0) + 1,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
