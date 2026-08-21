@@ -105,7 +105,9 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard" });
+    const { data } = await supabase.auth.getUser();
+    const staff = await isStaff(data.user?.id);
+    navigate({ to: staff ? "/admin" : "/dashboard" });
   }
 
   return (
