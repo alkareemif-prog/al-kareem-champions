@@ -12,6 +12,7 @@ import {
   setCompetitionStatus,
 } from "@/lib/staff.functions";
 import { PageHeader } from "@/components/PageHeader";
+import { BulkQuestionImport } from "@/components/BulkQuestionImport";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -341,6 +342,9 @@ function AdminPage() {
 
               {activeComp === comp.id && (
                 <div className="mt-6 border-t pt-6">
+                  <div className="mb-6">
+                    <BulkQuestionImport competitionId={comp.id} onImported={invalidate} />
+                  </div>
                   <div className="mb-4 space-y-2">
                     {(comp.questions ?? []).map((question: any, index: number) => (
                       <div key={question.id} className="rounded-md bg-muted/50 p-3 text-sm">

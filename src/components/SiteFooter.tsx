@@ -56,6 +56,8 @@ export function SiteFooter() {
           </Link>
           <a
             href={MAIN_SITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-gold-light inline-flex items-center gap-1 pt-2 font-medium"
           >
             Visit Our Main Foundation Website <ExternalLink className="size-4" />
