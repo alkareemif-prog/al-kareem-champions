@@ -83,18 +83,25 @@ function AuthPage() {
         data: { full_name_en: fullName.trim() },
       },
     });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(error.message);
       return;
     }
+    // Email confirmation is disabled: sign the user straight in if no session came back.
     if (!data.session) {
-      setEmailSent(true);
-      return;
+      const { error: signInError } = await supabase.auth.signInWithPassword(parsed.data);
+      if (signInError) {
+        setLoading(false);
+        toast.error(signInError.message);
+        return;
+      }
     }
+    setLoading(false);
     toast.success("Account created — complete your registration profile.");
     navigate({ to: "/profile" });
   }
+
 
   async function handleGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", {
