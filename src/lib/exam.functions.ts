@@ -40,12 +40,17 @@ export const startAttempt = createServerFn({ method: "POST" })
       attempt = created;
     }
 
-    const { data: questions, error: qError } = await supabase
+    // Questions are RLS-restricted to staff, so read them server-side with the
+    // privileged client — the caller is already authenticated above and we only
+    // project exam-safe columns (never correct_option).
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: questions, error: qError } = await supabaseAdmin
       .from("questions")
       .select("id, q_type, prompt, options, marks, word_limit, position")
       .eq("competition_id", comp.id)
-      .order("position");
+      .order("position", { ascending: true });
     if (qError) throw new Error(qError.message);
+
 
     const { data: answers } = await supabase
       .from("answers")
