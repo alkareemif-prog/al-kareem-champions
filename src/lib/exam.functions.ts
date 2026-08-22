@@ -119,10 +119,13 @@ export const submitAttempt = createServerFn({ method: "POST" })
       .eq("id", attempt.competition_id)
       .single();
 
-    const { data: questions } = await supabase
+    // Answer keys are staff-only under RLS; grade with the privileged client.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: questions } = await supabaseAdmin
       .from("questions")
       .select("id, q_type, correct_option, marks")
       .eq("competition_id", attempt.competition_id);
+
 
     const { data: answers } = await supabase
       .from("answers")
