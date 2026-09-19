@@ -19,10 +19,10 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3">
         <Link to="/" className="flex shrink-0 items-center gap-2">
-          <img src={LOGO_URL} alt={`${FOUNDATION_NAME} logo`} className="h-11 w-11 object-contain" />
-          <span className="font-display max-w-[9rem] text-sm leading-tight font-semibold text-primary sm:max-w-none sm:text-base">
+          <img src={LOGO_URL} alt={`${FOUNDATION_NAME} logo`} className="h-9 w-9 object-contain sm:h-11 sm:w-11" />
+          <span className="font-display max-w-[8.5rem] text-[0.8rem] leading-tight font-semibold tracking-tight text-primary sm:max-w-none sm:text-base">
             {FOUNDATION_NAME}
           </span>
         </Link>
@@ -64,13 +64,13 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <nav className="border-t border-border bg-card px-4 py-2 lg:hidden">
+        <nav className="animate-in slide-in-from-top-2 fade-in overflow-hidden border-t border-border bg-card px-3 py-2 duration-300 ease-out lg:hidden">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               onClick={() => setOpen(false)}
-              className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
+              className="block rounded-md px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary hover:text-primary"
             >
               {item.label}
             </Link>
